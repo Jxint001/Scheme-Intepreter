@@ -17,7 +17,7 @@ struct Syntax {
     SharedPtr<SyntaxBase> ptr;
     // std :: shared_ptr<SyntaxBase> ptr;
     Syntax(SyntaxBase *);
-    SyntaxBase* operator -> () const; 
+    SyntaxBase* operator -> () const;
     SyntaxBase& operator * ();
     SyntaxBase* get() const;
     Expr parse(Assoc &);

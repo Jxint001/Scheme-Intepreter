@@ -65,7 +65,7 @@ Syntax readItem(std::istream &is) {
     is.get();
     s.push_back(c);
   } while (true);
-  // try parsing a integer
+  // try parsing an integer
   bool neg = false;
   int n = 0;
   int i = 0;

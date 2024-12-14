@@ -21,6 +21,10 @@ void REPL()
             std::cout << "scm> ";
         #endif
         Syntax stx = readSyntax(std :: cin); // read
+        //my edit
+        stx->show(std::cout);
+        std::cout << std::endl;
+        //my edit
         try
         {
             Expr expr = stx -> parse(global_env); // parse

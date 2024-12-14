@@ -4,7 +4,6 @@
 #include "Def.hpp"
 #include "syntax.hpp"
 #include "shared.hpp"
-#include <memory>
 #include <cstring>
 #include <vector>
 
