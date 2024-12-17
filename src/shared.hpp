@@ -2,6 +2,7 @@
 #define SHARED_PTR_HPP
 
 #include <utility>
+//#include <iostream>
 
 template<typename T>
 class SharedPtr {
@@ -12,6 +13,7 @@ public:
     //construct and deconstruct
     SharedPtr(T* ptr):_p(ptr){
         if (ptr != nullptr)  count = new int(1);
+        //if (_p == nullptr) std::cout << "null" << std::endl;
     }
     SharedPtr():_p(nullptr), count(nullptr){}
     ~SharedPtr() { reset(); }

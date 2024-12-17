@@ -29,7 +29,9 @@ List :: List() {}
 void List::show(std::ostream &os) {
   os << '(';
   for (auto stx : stxs) {
+    //os << '/';
     stx -> show(os);
+    //os << '/';
     os << ' ';
   }
   os << ')';

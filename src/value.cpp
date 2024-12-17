@@ -40,7 +40,8 @@ std::ostream &operator<<(std::ostream &os, Value &v) {
 }
 
 void ValueBase::showCdr(std::ostream &os) {
-  os << " . ";
+  std::cout << "pair" << std::endl;
+  os << " .h ";
   show(os);
   os << ')';
 }

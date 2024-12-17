@@ -2,7 +2,6 @@
 #define SYNTAX
 
 #include <cstring>
-#include <memory>
 #include <vector>
 #include "Def.hpp"
 #include "shared.hpp"
@@ -10,6 +9,7 @@
 struct SyntaxBase {
   virtual Expr parse(Assoc &) = 0;
   virtual void show(std::ostream &) = 0;
+  virtual ExprType get_type() = 0;
   virtual ~SyntaxBase() = default;
 };
 
@@ -28,18 +28,21 @@ struct Number : SyntaxBase {
     Number(int);
     virtual Expr parse(Assoc &) override;
     virtual void show(std::ostream &) override;
+    virtual ExprType get_type() override;
 };
 
 struct TrueSyntax : SyntaxBase {
     // TrueSyntax();
     virtual Expr parse(Assoc &) override;
     virtual void show(std :: ostream &) override;
+    virtual ExprType get_type() override;
 };
 
 struct FalseSyntax : SyntaxBase {
     // FalseSyntax();
     virtual Expr parse(Assoc &) override;
     virtual void show(std :: ostream &) override;
+    virtual ExprType get_type() override;
 };
 
 struct Identifier : SyntaxBase {
@@ -47,6 +50,7 @@ struct Identifier : SyntaxBase {
     Identifier(const std::string &);
     virtual Expr parse(Assoc &) override;
     virtual void show(std::ostream &) override;
+    virtual ExprType get_type() override;
 };
 
 struct List : SyntaxBase {
@@ -54,6 +58,7 @@ struct List : SyntaxBase {
     List();
     virtual Expr parse(Assoc &) override;
     virtual void show(std::ostream &) override;
+    virtual ExprType get_type() override;
 };
 
 Syntax readSyntax(std::istream &);
