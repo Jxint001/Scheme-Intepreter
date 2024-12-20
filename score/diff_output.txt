@@ -1,2 +1,9 @@
-0a1
+1,6c1
+< hellll
+< evaluating var
+< start to find let
+< init
+< var is defined
+< not a function
+---
 > 3628800

@@ -17,7 +17,7 @@ Value Lambda::eval(Assoc &env) {
 } // lambda expression
 
 Value Apply::eval(Assoc &e) {
-    std::cout << "hellll" << std::endl;
+    //std::cout << "hellll" << std::endl;
     Value cl = rator->eval(e);
     //std::cout << "ok" << std::endl;
     if (cl->v_type != V_PROC) {
@@ -38,10 +38,10 @@ Value Apply::eval(Assoc &e) {
 Value Letrec::eval(Assoc &env) {} // letrec expression
 
 Value Var::eval(Assoc &e) {
-    std::cout << "evaluating var" << std::endl;
+    //std::cout << "evaluating var" << std::endl;
     Value v = find(x, e);
     if (v.get() == nullptr) { throw RuntimeError("undefined var"); }
-    std::cout << "var is defined" << std::endl;
+    //std::cout << "var is defined" << std::endl;
     return v;
 } // evaluation of variable
 
