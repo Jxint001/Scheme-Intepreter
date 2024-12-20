@@ -76,7 +76,10 @@ Expr List :: parse(Assoc &env) {
         return Expr(new Var(id->s));
     }
     //if input is in primitives
-    if (eptype == E_EXIT) { return Expr(new Exit()); }
+    if (eptype == E_EXIT) {
+        if (stxs.size() == 1) { return Expr(new Exit()); }
+        throw RuntimeError("invalid expression");
+    }
     if (eptype == E_PLUS) {
         if (stxs.size() != 3) { throw RuntimeError(w_num); }
         return Expr(new Plus(stxs[1]->parse(env), stxs[2]->parse(env)));
