@@ -23,7 +23,8 @@ enum ExprType
     E_CONS, E_NOT, E_CAR, E_CDR,
     E_EQQ, E_BOOLQ, E_INTQ, E_NULLQ, E_PAIRQ, E_PROCQ, E_SYMBOLQ,
     E_EXIT,
-    E_LIST
+    E_LIST,
+    E_DOT
 };
 enum ValueType
 {

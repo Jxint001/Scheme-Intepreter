@@ -19,25 +19,29 @@ Value Lambda::eval(Assoc &env) {
 Value Apply::eval(Assoc &e) {
     std::cout << "hellll" << std::endl;
     Value cl = rator->eval(e);
-    if (cl->v_type != V_PROC) { throw RuntimeError("not a function"); }
+    //std::cout << "ok" << std::endl;
+    if (cl->v_type != V_PROC) {
+        //std::cout << cl->v_type << std::endl;
+        throw RuntimeError("not a function"); 
+    }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
-    std::cout << "ok" << std::endl;
     if (clos->parameters.size() != rand.size()) { throw RuntimeError("incorrect number of paras"); }
     for (int i = 0; i < rand.size(); ++i) {
         Value v = rand[i]->eval(e);
         std::string target = clos->parameters[i];
         modify(target, v, e);
     }
-    //std::cout << clos->e->e_type << std::endl;
-    // Lambda* lam = dynamic_cast<Lambda*>(rator.get());
-    return (clos->e)->eval(clos->env);
+    return (clos->e)->eval(e);
+    
 } // for function calling
 
 Value Letrec::eval(Assoc &env) {} // letrec expression
 
 Value Var::eval(Assoc &e) {
+    std::cout << "evaluating var" << std::endl;
     Value v = find(x, e);
     if (v.get() == nullptr) { throw RuntimeError("undefined var"); }
+    std::cout << "var is defined" << std::endl;
     return v;
 } // evaluation of variable
 
@@ -47,9 +51,13 @@ Value Fixnum::eval(Assoc &e) {
 
 Value If::eval(Assoc &e) {
     Value condition = cond->eval(e);
+    std::cout << "in if" << std::endl;
     if (condition->v_type == V_BOOL) {
         Boolean* bo = dynamic_cast<Boolean*>(condition.get());
-        if (bo->b) { return conseq->eval(e);}
+        if (bo->b) {
+            std::cout << "evaluating conseq" << std::endl;
+            return conseq->eval(e);
+        }
         return alter->eval(e);
     }
     return conseq->eval(e);
@@ -86,24 +94,17 @@ Value Quote::eval(Assoc &e) {
         if (!list->stxs.size()) {
             return NullV();
         }
-        // std::cout <<std::endl<< "things in stxs" << std::endl;
-        // for (int i = 0; i < list->stxs.size(); ++i) {
-        //     list->stxs[i]->show(std::cout);
-        //     //std::cout << " sep ";
-        // }
-        // std::cout << std::endl;
         int len = list->stxs.size();
-        Value v1 = PairV(Quote(list->stxs[len - 1]).eval(e), NullV());
-        // std::cout << "v1"<<std::endl;
-        // v1->show(std::cout);
-        // std::cout << std::endl;
-        for (int i = len - 2; i >= 0; --i) {
+        //std::cout << len << std::endl;
+        if (len == 3 && list->stxs[1]->get_type() == E_DOT) {
+            //std::cout << "hello" << std::endl;
+            return PairV(Quote(list->stxs[0]).eval(e), 
+                        (Quote(list->stxs[2]).eval(e)));
+        }
+        Value v1 = NullV();
+        for (int i = len - 1; i >= 0; --i) {
             v1 = PairV(Quote(list->stxs[i]).eval(e), v1);
         }
-        // std::cout << std::endl << "returnning pair" << std::endl;
-        // v1->show(std::cout);
-        // std::cout << std::endl; 
-        // if (v1->v_type == V_PAIR) {std::cout <<std::endl<< "yes" << std::endl;}
         return v1;
     }//with()
     Identifier* id = dynamic_cast<Identifier*>(s.get());

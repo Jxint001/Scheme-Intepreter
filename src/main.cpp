@@ -24,8 +24,8 @@ void REPL()
         try
         {
             Expr expr = stx -> parse(global_env); // parse
-             stx -> show(std :: cout); // syntax print
-             std::cout << std::endl;
+            //  stx -> show(std :: cout); // syntax print
+            //  std::cout << std::endl;
             Value val = expr -> eval(global_env);
             if (val -> v_type == V_TERMINATE) {
                 //std::cout << "scan terminate" << std::endl;
@@ -40,12 +40,12 @@ void REPL()
         }
         puts("");
     }
-    std::cout << "things in assoclist" << std::endl;
-    for (auto i = global_env; i.get() != nullptr; i = i->next) {
-        std::cout << i->x << " ";
-        (i->v)->show(std::cout);
-        std::cout << std::endl;
-    }
+    // std::cout << "things in assoclist" << std::endl;
+    // for (auto i = global_env; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     (i->v)->show(std::cout);
+    //     std::cout << std::endl;
+    // }
 }
 
 

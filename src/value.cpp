@@ -1,4 +1,5 @@
 #include "value.hpp"
+#include <iostream>
 
 AssocList::AssocList(const std::string &x, const Value &v, Assoc &next)
   : x(x), v(v), next(next) {}
@@ -28,9 +29,13 @@ void modify(const std::string &x, const Value &v, Assoc &lst)
 }
 
 Value find(const std::string &x, Assoc &l) {
-  for (auto i = l; i.get() != nullptr; i = i -> next)
+  std::cout << "start to find " << x << std::endl;
+  for (auto i = l; i.get() != nullptr; i = i -> next) {
+    std::cout << "init" << std::endl;
     if (x == i -> x)
       return i -> v;
+  }
+  std::cout << "not found" << std::endl;
   return Value(nullptr);
 }
 
@@ -40,8 +45,8 @@ std::ostream &operator<<(std::ostream &os, Value &v) {
 }
 
 void ValueBase::showCdr(std::ostream &os) {
-  std::cout << "pair" << std::endl;
-  os << " .h ";
+  //std::cout << "pair" << std::endl;
+  os << " . ";
   show(os);
   os << ')';
 }

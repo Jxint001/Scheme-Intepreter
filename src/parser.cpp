@@ -30,11 +30,20 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
+     env = extend(s, NullV(), env);
+            // std::cout << "things in assoclist" << std::endl;
+            // for (auto i = env; i.get() != nullptr; i = i->next) {
+            //     std::cout << i->x << " ";
+            //     (i->v)->show(std::cout);
+            //     std::cout << std::endl;
+            // }
     return Expr(new Var(s));
 }
 ExprType Identifier :: get_type() { 
     if (primitives.find(s) != primitives.end()) { return primitives[s]; }
     if (reserved_words.find(s) != reserved_words.end()) { return reserved_words[s]; }
+    if (s == "let") { return E_LET; }
+    if (s == ".") { return E_DOT; }
     return E_VAR;
 }
 
@@ -56,6 +65,16 @@ Expr List :: parse(Assoc &env) {
     Identifier* id = dynamic_cast<Identifier*>(stxs[0].get());
     ExprType eptype = stxs[0]->get_type();
     string w_num = "incorrect number of parameters";
+    if (eptype == E_VAR) {
+        env = extend(id->s, NullV(), env);
+            // std::cout << "things in assoclist" << std::endl;
+            // for (auto i = env; i.get() != nullptr; i = i->next) {
+            //     std::cout << i->x << " ";
+            //     (i->v)->show(std::cout);
+            //     std::cout << std::endl;
+            // }
+        return Expr(new Var(id->s));
+    }
     //if input is in primitives
     if (eptype == E_EXIT) { return Expr(new Exit()); }
     if (eptype == E_PLUS) {
@@ -174,7 +193,6 @@ Expr List :: parse(Assoc &env) {
     for (int i = 1; i < stxs.size(); ++i) {
         expr.push_back(stxs[i]->parse(env));
     }
-    //std::cout << "hi" << std::endl;
     return Expr(new Apply(stxs[0]->parse(env), expr));
 }
 

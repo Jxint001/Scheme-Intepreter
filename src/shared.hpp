@@ -2,7 +2,7 @@
 #define SHARED_PTR_HPP
 
 #include <utility>
-//#include <iostream>
+#include <iostream>
 
 template<typename T>
 class SharedPtr {
@@ -92,6 +92,7 @@ public:
         if (count != nullptr && --(*count) == 0) {
             delete count;
             delete _p;
+            //std::cout << "Resetting pointer: " << _p << std::endl;
         }
         _p = nullptr;
         count = nullptr;
