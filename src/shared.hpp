@@ -7,8 +7,8 @@
 template<typename T>
 class SharedPtr {
 private:
-    T*_p;
-    int* count;
+    T*_p = nullptr;
+    int* count = nullptr;
 public:
     //construct and deconstruct
     SharedPtr(T* ptr):_p(ptr){
