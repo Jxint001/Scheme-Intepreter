@@ -55,7 +55,7 @@ Value If::eval(Assoc &e) {
     if (condition->v_type == V_BOOL) {
         Boolean* bo = dynamic_cast<Boolean*>(condition.get());
         if (bo->b) {
-            std::cout << "evaluating conseq" << std::endl;
+            //std::cout << "evaluating conseq" << std::endl;
             return conseq->eval(e);
         }
         return alter->eval(e);
