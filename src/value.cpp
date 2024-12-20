@@ -29,13 +29,13 @@ void modify(const std::string &x, const Value &v, Assoc &lst)
 }
 
 Value find(const std::string &x, Assoc &l) {
-  std::cout << "start to find " << x << std::endl;
+  //std::cout << "start to find " << x << std::endl;
   for (auto i = l; i.get() != nullptr; i = i -> next) {
-    std::cout << "init" << std::endl;
+    //std::cout << "init" << std::endl;
     if (x == i -> x)
       return i -> v;
   }
-  std::cout << "not found" << std::endl;
+  //std::cout << "not found" << std::endl;
   return Value(nullptr);
 }
 

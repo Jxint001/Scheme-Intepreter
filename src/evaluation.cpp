@@ -51,7 +51,7 @@ Value Fixnum::eval(Assoc &e) {
 
 Value If::eval(Assoc &e) {
     Value condition = cond->eval(e);
-    std::cout << "in if" << std::endl;
+    //std::cout << "in if" << std::endl;
     if (condition->v_type == V_BOOL) {
         Boolean* bo = dynamic_cast<Boolean*>(condition.get());
         if (bo->b) {
