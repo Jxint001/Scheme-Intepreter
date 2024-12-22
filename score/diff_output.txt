@@ -1,4 +1,4 @@
 1c1
-< undefined var
+< RuntimeError
 ---
 > 3628800

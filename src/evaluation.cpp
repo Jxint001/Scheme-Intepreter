@@ -13,8 +13,12 @@ extern std :: map<std :: string, ExprType> reserved_words;
 
 Value Let::eval(Assoc &env) {
     //std::cout << "hi" << std::endl;
+    Assoc tmp = empty();
     Assoc local = empty();
     for (auto i = env; i.get() != nullptr; i = i->next) {
+        tmp = extend(i->x, i->v, tmp, i->def);
+    }
+    for (auto i = tmp; i.get() != nullptr; i = i->next) {
         local = extend(i->x, i->v, local, i->def);
     }
     std::vector < std::pair<std::string, Value>> vec;
@@ -23,7 +27,11 @@ Value Let::eval(Assoc &env) {
         vec.push_back(std::make_pair(bind[i].first, v));
     }
     for (int i = 0; i < vec.size(); ++i) {
-        local = extend(vec[i].first, vec[i].second, local, 1);
+        if ((find(vec[i].first, local)).get() == nullptr) {
+            local = extend(vec[i].first, vec[i].second, local, 1);
+        } else {
+            modify(vec[i].first, vec[i].second, local);
+        }
     }
     // for (int i = 0; i < bind.size(); ++i) {
     //     modify(bind[i].first, bind[i].second->eval(env), local);
@@ -34,6 +42,8 @@ Value Let::eval(Assoc &env) {
     //     i->v->show(std::cout);
     //     std::cout << std::endl;
     // }
+    // std::cout << "body type" << std::endl;
+    // std::cout << body->e_type << std::endl;
     return body->eval(local);
 } // let expression
 
@@ -67,8 +77,12 @@ Value Apply::eval(Assoc &e) {
     //     i->v->show(std::cout);
     //     std::cout << std::endl;
     // }
+    Assoc tmp = empty();
     Assoc local = empty();
     for (auto i = e; i.get() != nullptr; i = i->next) {
+        tmp = extend(i->x, i->v, tmp, i->def);
+    }
+    for (auto i = tmp; i.get() != nullptr; i = i->next) {
         local = extend(i->x, i->v, local, i->def);
     }
     if (clos->parameters.size() != rand.size() )
@@ -79,7 +93,14 @@ Value Apply::eval(Assoc &e) {
     for (int i = 0; i < rand.size(); ++i) {
         Value v = rand[i]->eval(e);
         std::string target = clos->parameters[i];
-        modify(target, v, local);
+        bool flag = 0;
+        for (auto j = local; j.get() != nullptr; j = j->next) {
+            if (j->x == target) { flag = 1;  modify(target, v, local);  break; }
+        }
+        if (!flag) {
+            local = extend(target, v, local, 1);
+        }
+        
     }
     // std::cout << "in local_apply" << std::endl;
     // for (auto i = local; i.get() != nullptr; i = i->next) {
@@ -87,26 +108,28 @@ Value Apply::eval(Assoc &e) {
     //     i->v->show(std::cout);
     //     std::cout << std::endl;
     // }
+    // std::cout << "next" << std::endl;
+    // std::cout << clos->e->e_type << std::endl;
     return (clos->e)->eval(local);
 } // for function calling
 
 Value Letrec::eval(Assoc &env) {
-
-    // std::cout << "in env" << std::endl;
-    // for (auto i = env; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    // }
-
+    Assoc tmp = empty();
+    for (auto i = env; i.get() != nullptr; i = i->next) {
+        tmp = extend(i->x, i->v, tmp, i->def);
+    }
     Assoc local = empty();
     Assoc local_l = empty();
-    for (auto i = env; i.get() != nullptr; i = i->next) {
+    for (auto i = tmp; i.get() != nullptr; i = i->next) {
         local = extend(i->x, i->v, local, i->def);
         local_l = extend(i->x, i->v, local_l, i->def);
     }
     for (int i = 0; i < bind.size(); ++i) {
-        if ((find(bind[i].first, local)).get() == nullptr) {
+        bool flag = 0;
+        for (auto j = local; j.get() != nullptr; j = j->next) {
+            if (j->x == bind[i].first) { flag = 1;  break; }
+        }
+        if (!flag) {
             local = extend(bind[i].first, NullV(), local, 0);
             local_l = extend(bind[i].first, NullV(), local_l, 0);
         }
@@ -115,32 +138,21 @@ Value Letrec::eval(Assoc &env) {
         Value v =  bind[i].second->eval(local);
         modify(bind[i].first, v, local_l);
     }
+
+//    std::cout << "local_l_env2" << std::endl;
+//     for (auto i = local_l; i.get() != nullptr; i = i->next) {
+//         std::cout << i->x << " ";
+//         i->v->show(std::cout);
+//         std::cout << std::endl;
+//     }
+
+
     return body->eval(local_l);
 } // letrec expression
 
 Value Var::eval(Assoc &e) {
-    // std::cout << "evaluating var" << std::endl;
-    //     for (auto i = e; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    //     }
-    // std::cout << x << std::endl;
     Value v = find(x, e);
     if (v.get() == nullptr) { throw RuntimeError("undefined var"); }
-    // if (v->v_type == V_PROC) {
-    //     Closure* clos = dynamic_cast<Closure*>(v.get());
-    //     clos->env = e;
-    //     // for (auto i = e; i.get() != nullptr; i = i->next) {
-    //     //     if ((find(i->x, clos->env)).get() == nullptr){
-    //     //     clos->env = extend(i->x, i->v, clos->env, i->def);
-    //     //     }
-    //     // }
-    // }
-    // std::cout << "found " << x << " ";
-    // v->show(std::cout);
-    // std::cout << std::endl;
-    //std::cout << "var is defined" << std::endl;
     return v;
 } // evaluation of variable
 
@@ -151,13 +163,6 @@ Value Fixnum::eval(Assoc &e) {
 Value If::eval(Assoc &e) {
     //std::cout << "in if" << std::endl;
     Value condition = cond->eval(e);
-    // std::cout << "in e_if" << std::endl;
-    // for (auto i = e; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    // }
-    
     if (condition->v_type == V_BOOL) {
         Boolean* bo = dynamic_cast<Boolean*>(condition.get());
         if (bo->b) {

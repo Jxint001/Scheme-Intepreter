@@ -30,7 +30,13 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-    if ((find (s, env)).get() == nullptr) { env = extend(s, NullV(), env, 0); }
+    bool flag = 0;
+    for (auto i = env; i.get() != nullptr; i = i->next) {
+        if (i->x == s) { flag = 1;  break; }
+    }
+    if (!flag) {
+        env = extend(s, NullV(), env, 0);
+    }
     //env = extend(s, NullV(), env, 0);
     return Expr(new Var(s));
 }
@@ -65,17 +71,18 @@ Expr List :: parse(Assoc &env) {
         for(auto i = env; i.get() != nullptr; i = i->next)
             if(i->x == id->s) { usedf = 1;  break; }
         if(usedf){
-            //std::cout<<"used function"<<std::endl;
+            //std::cout<<"used function "<< id->s << std::endl;
             vector<Expr> expr;
             for(int i = 1; i < stxs.size(); ++i)
             expr.push_back(stxs[i]->parse(env));
             return Expr(new Apply(stxs[0]->parse(env), expr));
         }
     }
+    //std::cout << "wwwwwwwwwww   " << id->s << std::endl;
 
-    if (eptype == E_VAR || eptype == E_DOT) {
-        return Expr(new Var(id->s));
-    }
+    // if (eptype == E_VAR || eptype == E_DOT) {
+    //     return Expr(new Var(id->s));
+    // }
     //if input is in primitives
     if (eptype == E_EXIT) {
         if (stxs.size() == 1) { return Expr(new Exit()); }
@@ -176,7 +183,7 @@ Expr List :: parse(Assoc &env) {
     }
     if (eptype == E_IF) {
         if (stxs.size() != 4) { throw RuntimeError(w_num); }
-        return Expr(new If(stxs[1]->parse(env), stxs[2]->parse(env), stxs[3].parse(env)));
+        return Expr(new If(stxs[1]->parse(env), stxs[2]->parse(env), stxs[3]->parse(env)));
     }
     if (eptype == E_LAMBDA) {
         if (stxs.size() != 3) { throw RuntimeError(w_num); }
@@ -206,7 +213,12 @@ Expr List :: parse(Assoc &env) {
             if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
             throw RuntimeError("Not A Var"); }
             if (eptype == E_LETREC) {
-                env = extend(name->s, NullV(), env, 0);
+                bool usedf = 0;
+                for(auto i = env; i.get() != nullptr; i = i->next)
+                    if(i->x == name->s) { usedf = 1;  break; }
+                if(!usedf){
+                    env = extend(name->s, NullV(), env, 0);
+                }
             }
             Expr expr = var->stxs[1]->parse(env);
             vec.push_back(mp(name->s, expr));
@@ -229,9 +241,8 @@ Expr List :: parse(Assoc &env) {
             if (reserved_words.find(id->s) == reserved_words.end()) {
                 var = new Var(id->s);
             } else {
-                //var = es->parse(env);
-                return Expr(new Let(vec, es->parse(env)));
-                //goto start;
+                if (eptype == E_LET)  return Expr(new Let(vec, es->parse(env)));
+                return Expr(new Letrec(vec, es->parse(env)));
             }
             
             vector<Expr> expr;
@@ -250,7 +261,7 @@ Expr List :: parse(Assoc &env) {
     for (int i = 1; i < stxs.size(); ++i) {
         expr.push_back(stxs[i]->parse(env));
     }
-    //std::cout << "apply" << std::endl;
+    //std::cout << "apply" << id->s << std::endl;
     return Expr(new Apply(stxs[0]->parse(env), expr));
 }
 
