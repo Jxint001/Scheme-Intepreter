@@ -37,7 +37,8 @@ Value Apply::eval(Assoc &e) {
     Closure* clos = dynamic_cast<Closure*>(cl.get());
     if (clos->parameters.size() != rand.size() )
     //&& (!in(clos->e->e_type)))
-    { std::cout << "in apply "; throw RuntimeError("incorrect number of paras"); }
+    { //std::cout << "in apply "; 
+    throw RuntimeError("incorrect number of paras"); }
 
     // std::cout << "finished rator" << std::endl;
 
@@ -85,7 +86,8 @@ Value Letrec::eval(Assoc &env) {
 
 Value Var::eval(Assoc &e) {
     Value v = find(x, e);
-    if (v.get() == nullptr) { std::cout << x << std::endl;throw RuntimeError("undefined var"); }
+    if (v.get() == nullptr) {// std::cout << x << std::endl;
+    throw RuntimeError("undefined var"); }
     if (v->v_type == V_PROC) {
         Closure* clos = dynamic_cast<Closure*>(v.get());
         //clos->env = merge(clos->env, e);
