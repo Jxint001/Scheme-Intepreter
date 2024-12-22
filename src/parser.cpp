@@ -193,6 +193,7 @@ Expr List :: parse(Assoc &env) {
             Identifier* id = dynamic_cast<Identifier*>(paras->stxs[i].get());
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
             xs.push_back(id->s);
+            env = extend(id->s, Value(nullptr), env, 0);
         }
         return Expr(new Lambda(xs, stxs[2]->parse(env)));
     }
@@ -260,7 +261,7 @@ Expr List :: parse(Assoc &env) {
     for (int i = 1; i < stxs.size(); ++i) {
         expr.push_back(stxs[i]->parse(env));
     }
-    //std::cout << "apply" << id->s << std::endl;
+    //std::cout << "apply" << std::endl;
     return Expr(new Apply(stxs[0]->parse(env), expr));
 }
 

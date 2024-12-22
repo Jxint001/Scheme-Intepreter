@@ -27,7 +27,8 @@ Value Lambda::eval(Assoc &env) {
 
 Value Apply::eval(Assoc &e) {
     //std::cout << "hellll" << std::endl;
-    Value cl = rator->eval(e);
+    Assoc e1 = e;
+    Value cl = rator->eval(e1);
     //std::cout << rator->e_type << std::endl;
     if (cl->v_type != V_PROC) {
         // std::cout << cl->v_type << std::endl;
@@ -52,7 +53,8 @@ Value Apply::eval(Assoc &e) {
     // std::cout << std::endl;
     Assoc local = clos->env;
     for (int i = 0; i < rand.size(); ++i) {
-        Value v = rand[i]->eval(e);
+        Assoc e2 = e;
+        Value v = rand[i]->eval(e2);
         std::string target = clos->parameters[i];
         local = extend(target, v, local, 1);
     }
@@ -63,7 +65,7 @@ Value Apply::eval(Assoc &e) {
     //     i->v->show(std::cout);
     //     std::cout << std::endl;
     // }
-    // std::cout << std::endl;
+    //std::cout << std::endl;
        
     return (clos->e)->eval(local);
 } // for function calling
