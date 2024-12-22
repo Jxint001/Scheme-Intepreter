@@ -37,7 +37,6 @@ Expr Identifier :: parse(Assoc &env) {
     if (!flag) {
         env = extend(s, NullV(), env, 0);
     }
-    //env = extend(s, NullV(), env, 0);
     return Expr(new Var(s));
 }
 ExprType Identifier :: get_type() { 
@@ -212,14 +211,14 @@ Expr List :: parse(Assoc &env) {
             Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
             if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
             throw RuntimeError("Not A Var"); }
-            if (eptype == E_LETREC) {
-                bool usedf = 0;
-                for(auto i = env; i.get() != nullptr; i = i->next)
-                    if(i->x == name->s) { usedf = 1;  break; }
-                if(!usedf){
-                    env = extend(name->s, NullV(), env, 0);
-                }
-            }
+            // if (eptype == E_LETREC) {
+            //     bool usedf = 0;
+            //     for(auto i = env; i.get() != nullptr; i = i->next)
+            //         if(i->x == name->s) { usedf = 1;  break; }
+            //     if(!usedf){
+            //         env = extend(name->s, NullV(), env, 0);
+            //     }
+            // }
             Expr expr = var->stxs[1]->parse(env);
             vec.push_back(mp(name->s, expr));
         }

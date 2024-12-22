@@ -25,9 +25,10 @@ void REPL()
         try
         {
             Expr expr = stx -> parse(global_env); // parse
-            //  stx -> show(std :: cout); // syntax print
-            //  std::cout << std::endl;
+            //   stx -> show(std :: cout); // syntax print
+            //   std::cout << std::endl;
             Value val = expr -> eval(global_env);
+            //td::cout << "finish evaluation" << std::endl;
             if (val -> v_type == V_TERMINATE) {
                 //std::cout << "scan terminate" << std::endl;
                 break;

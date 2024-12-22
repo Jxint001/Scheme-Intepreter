@@ -13,53 +13,16 @@ extern std :: map<std :: string, ExprType> reserved_words;
 
 Value Let::eval(Assoc &env) {
     //std::cout << "hi" << std::endl;
-    Assoc tmp = empty();
-    Assoc local = empty();
-    for (auto i = env; i.get() != nullptr; i = i->next) {
-        tmp = extend(i->x, i->v, tmp, i->def);
-    }
-    for (auto i = tmp; i.get() != nullptr; i = i->next) {
-        local = extend(i->x, i->v, local, i->def);
-    }
+    Assoc local = env;
     std::vector < std::pair<std::string, Value>> vec;
     for (int i = 0; i < bind.size(); ++i) {
-        Value v = bind[i].second->eval(env);
-        vec.push_back(std::make_pair(bind[i].first, v));
+        local = extend(bind[i].first, bind[i].second->eval(env), local, 1);
     }
-    for (int i = 0; i < vec.size(); ++i) {
-        if ((find(vec[i].first, local)).get() == nullptr) {
-            local = extend(vec[i].first, vec[i].second, local, 1);
-        } else {
-            modify(vec[i].first, vec[i].second, local);
-        }
-    }
-    // for (int i = 0; i < bind.size(); ++i) {
-    //     modify(bind[i].first, bind[i].second->eval(env), local);
-    // }
-    // std::cout << "local vars" << std::endl;
-    // for (auto i = local; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    // }
-    // std::cout << "body type" << std::endl;
-    // std::cout << body->e_type << std::endl;
     return body->eval(local);
 } // let expression
 
 Value Lambda::eval(Assoc &env) {
-    //`std::cout << "in lambda" << std::endl;
-    Assoc local = empty();
-    for (auto i = env; i.get() != nullptr; i = i->next) {
-        local = extend(i->x, i->v, local, i->def);
-    }
-    // std::cout << "local vars" << std::endl;
-    // for (auto i = local; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    // }
-    return ClosureV(x, e, local);
+    return ClosureV(x, e, env);
 } // lambda expression
 
 Value Apply::eval(Assoc &e) {
@@ -67,92 +30,66 @@ Value Apply::eval(Assoc &e) {
     Value cl = rator->eval(e);
     //std::cout << rator->e_type << std::endl;
     if (cl->v_type != V_PROC) {
-        //std::cout << cl->v_type << std::endl;
+        // std::cout << cl->v_type << std::endl;
+        // std::cout << rator->e_type << std::endl;
         throw RuntimeError("not a function");
     }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
-    // std::cout << "in clos_env" << std::endl;
+    if (clos->parameters.size() != rand.size() )
+    //&& (!in(clos->e->e_type)))
+    { std::cout << "in apply "; throw RuntimeError("incorrect number of paras"); }
+
+    // std::cout << "finished rator" << std::endl;
+
+    // std::cout << "clos->env" << std::endl;
     // for (auto i = clos->env; i.get() != nullptr; i = i->next) {
     //     std::cout << i->x << " ";
     //     i->v->show(std::cout);
     //     std::cout << std::endl;
     // }
-    Assoc tmp = empty();
-    Assoc local = empty();
-    for (auto i = e; i.get() != nullptr; i = i->next) {
-        tmp = extend(i->x, i->v, tmp, i->def);
-    }
-    for (auto i = tmp; i.get() != nullptr; i = i->next) {
-        local = extend(i->x, i->v, local, i->def);
-    }
-    if (clos->parameters.size() != rand.size() )
-    //&& (!in(clos->e->e_type)))
-    { throw RuntimeError("incorrect number of paras"); }
-
-
+    // std::cout << "rand size: " << rand.size() << std::endl;
+    // std::cout << std::endl;
+    Assoc local = clos->env;
     for (int i = 0; i < rand.size(); ++i) {
         Value v = rand[i]->eval(e);
         std::string target = clos->parameters[i];
-        bool flag = 0;
-        for (auto j = local; j.get() != nullptr; j = j->next) {
-            if (j->x == target) { flag = 1;  modify(target, v, local);  break; }
-        }
-        if (!flag) {
-            local = extend(target, v, local, 1);
-        }
-        
+        local = extend(target, v, local, 1);
     }
-    // std::cout << "in local_apply" << std::endl;
-    // for (auto i = local; i.get() != nullptr; i = i->next) {
+
+    // std::cout << "after_edit_clos->env" << std::endl;
+    // for (auto i = clos->env; i.get() != nullptr; i = i->next) {
     //     std::cout << i->x << " ";
     //     i->v->show(std::cout);
     //     std::cout << std::endl;
     // }
-    // std::cout << "next" << std::endl;
-    // std::cout << clos->e->e_type << std::endl;
+    // std::cout << std::endl;
+       
     return (clos->e)->eval(local);
 } // for function calling
 
 Value Letrec::eval(Assoc &env) {
-    Assoc tmp = empty();
-    for (auto i = env; i.get() != nullptr; i = i->next) {
-        tmp = extend(i->x, i->v, tmp, i->def);
-    }
-    Assoc local = empty();
-    Assoc local_l = empty();
-    for (auto i = tmp; i.get() != nullptr; i = i->next) {
-        local = extend(i->x, i->v, local, i->def);
-        local_l = extend(i->x, i->v, local_l, i->def);
-    }
+    //std::cout << "letrec" << std::endl;
+    Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
-        bool flag = 0;
-        for (auto j = local; j.get() != nullptr; j = j->next) {
-            if (j->x == bind[i].first) { flag = 1;  break; }
-        }
-        if (!flag) {
-            local = extend(bind[i].first, NullV(), local, 0);
-            local_l = extend(bind[i].first, NullV(), local_l, 0);
-        }
+       local = extend(bind[i].first, Value(nullptr), local, 0);
     }
+    std::vector< std::pair<std::string, Value>> value_to_bind;
     for (int i = 0; i < bind.size(); ++i) {
-        Value v =  bind[i].second->eval(local);
-        modify(bind[i].first, v, local_l);
+        value_to_bind.push_back(std::make_pair(bind[i].first, bind[i].second->eval(local)));
     }
-
-//    std::cout << "local_l_env2" << std::endl;
-//     for (auto i = local_l; i.get() != nullptr; i = i->next) {
-//         std::cout << i->x << " ";
-//         i->v->show(std::cout);
-//         std::cout << std::endl;
-//     }
-
-
-    return body->eval(local_l);
+    for (int i = 0; i < value_to_bind.size(); ++i) {
+        modify(value_to_bind[i].first, value_to_bind[i].second, local);
+    }
+    return body->eval(local);
 } // letrec expression
 
 Value Var::eval(Assoc &e) {
     Value v = find(x, e);
-    if (v.get() == nullptr) { throw RuntimeError("undefined var"); }
+    if (v.get() == nullptr) { std::cout << x << std::endl;throw RuntimeError("undefined var"); }
+    if (v->v_type == V_PROC) {
+        Closure* clos = dynamic_cast<Closure*>(v.get());
+        //clos->env = merge(clos->env, e);
+    }
     return v;
 } // evaluation of variable
 
@@ -491,14 +428,17 @@ Value Not::evalRator(const Value &rand) {
 } // not
 
 Value Car::evalRator(const Value &rand) {
-    //haven't consider the first value itself is a pair?
-    if (rand->v_type != V_PAIR) { throw RuntimeError("Not A Pair"); }
+    if (rand->v_type != V_PAIR) { 
+        //rand->show(std::cout);std::cout << std::endl;
+        throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
     return p->car;
 } // car
 
 Value Cdr::evalRator(const Value &rand) {
-    if (rand->v_type != V_PAIR) { throw RuntimeError("Not A Pair"); }
+    if (rand->v_type != V_PAIR) { 
+        //rand->show(std::cout);std::cout << std::endl;
+        throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
     return p->cdr;
 } // cdr

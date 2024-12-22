@@ -19,6 +19,16 @@ Assoc extend(const std::string &x, const Value &v, Assoc &lst, bool def)
     return Assoc(new AssocList(x, v, lst, def));
 }
 
+Assoc merge(Assoc& target, Assoc& remain) {
+  Assoc tmp = remain;
+  for (auto i = target; i.get() != nullptr; i = i->next) {
+    if ((find(i->x, tmp)).get() == nullptr) {
+      tmp = extend(i->x, i->v, tmp, i->def);
+    }
+  }
+  return tmp;
+}
+
 void modify(const std::string &x, const Value &v, Assoc &lst)
 {
     for (auto i = lst; i.get() != nullptr; i = i -> next)
