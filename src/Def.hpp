@@ -35,5 +35,6 @@ enum ValueType
 
 void initPrimitives();
 void initReservedWords();
+void initfunctions(Assoc&);
 
 #endif

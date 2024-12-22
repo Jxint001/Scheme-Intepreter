@@ -15,6 +15,7 @@ void REPL()
 {
     // read - evaluation - print loop
     Assoc global_env = empty();
+    initfunctions(global_env);
     while (1)
     {
         #ifndef ONLINE_JUDGE
@@ -35,8 +36,8 @@ void REPL()
         }
         catch (const RuntimeError &RE)
         {
-            //std :: cout << RE.message();
-            std :: cout << "RuntimeError";
+            std :: cout << RE.message();
+            //std :: cout << "RuntimeError";
         }
         puts("");
     }

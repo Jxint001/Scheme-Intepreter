@@ -5,42 +5,141 @@
 #include "syntax.hpp"
 #include <cstring>
 #include <vector>
+#include <utility>
 #include <map>
 
 extern std :: map<std :: string, ExprType> primitives;
 extern std :: map<std :: string, ExprType> reserved_words;
 
-Value Let::eval(Assoc &env) {} // let expression
+Value Let::eval(Assoc &env) {
+    //std::cout << "hi" << std::endl;
+    Assoc local = empty();
+    for (auto i = env; i.get() != nullptr; i = i->next) {
+        local = extend(i->x, i->v, local, i->def);
+    }
+    std::vector < std::pair<std::string, Value>> vec;
+    for (int i = 0; i < bind.size(); ++i) {
+        Value v = bind[i].second->eval(env);
+        vec.push_back(std::make_pair(bind[i].first, v));
+    }
+    for (int i = 0; i < vec.size(); ++i) {
+        local = extend(vec[i].first, vec[i].second, local, 1);
+    }
+    // for (int i = 0; i < bind.size(); ++i) {
+    //     modify(bind[i].first, bind[i].second->eval(env), local);
+    // }
+    // std::cout << "local vars" << std::endl;
+    // for (auto i = local; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    // }
+    return body->eval(local);
+} // let expression
 
 Value Lambda::eval(Assoc &env) {
-    return ClosureV(x, e, env);
+    //`std::cout << "in lambda" << std::endl;
+    Assoc local = empty();
+    for (auto i = env; i.get() != nullptr; i = i->next) {
+        local = extend(i->x, i->v, local, i->def);
+    }
+    // std::cout << "local vars" << std::endl;
+    // for (auto i = local; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    // }
+    return ClosureV(x, e, local);
 } // lambda expression
 
 Value Apply::eval(Assoc &e) {
     //std::cout << "hellll" << std::endl;
     Value cl = rator->eval(e);
-    //std::cout << "ok" << std::endl;
+    //std::cout << rator->e_type << std::endl;
     if (cl->v_type != V_PROC) {
         //std::cout << cl->v_type << std::endl;
-        throw RuntimeError("not a function"); 
+        throw RuntimeError("not a function");
     }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
-    if (clos->parameters.size() != rand.size()) { throw RuntimeError("incorrect number of paras"); }
+    // std::cout << "in clos_env" << std::endl;
+    // for (auto i = clos->env; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    // }
+    Assoc local = empty();
+    for (auto i = e; i.get() != nullptr; i = i->next) {
+        local = extend(i->x, i->v, local, i->def);
+    }
+    if (clos->parameters.size() != rand.size() )
+    //&& (!in(clos->e->e_type)))
+    { throw RuntimeError("incorrect number of paras"); }
+
+
     for (int i = 0; i < rand.size(); ++i) {
         Value v = rand[i]->eval(e);
         std::string target = clos->parameters[i];
-        modify(target, v, e);
+        modify(target, v, local);
     }
-    return (clos->e)->eval(e);
-    
+    // std::cout << "in local_apply" << std::endl;
+    // for (auto i = local; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    // }
+    return (clos->e)->eval(local);
 } // for function calling
 
-Value Letrec::eval(Assoc &env) {} // letrec expression
+Value Letrec::eval(Assoc &env) {
+
+    // std::cout << "in env" << std::endl;
+    // for (auto i = env; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    // }
+
+    Assoc local = empty();
+    Assoc local_l = empty();
+    for (auto i = env; i.get() != nullptr; i = i->next) {
+        local = extend(i->x, i->v, local, i->def);
+        local_l = extend(i->x, i->v, local_l, i->def);
+    }
+    for (int i = 0; i < bind.size(); ++i) {
+        if ((find(bind[i].first, local)).get() == nullptr) {
+            local = extend(bind[i].first, NullV(), local, 0);
+            local_l = extend(bind[i].first, NullV(), local_l, 0);
+        }
+    }
+    for (int i = 0; i < bind.size(); ++i) {
+        Value v =  bind[i].second->eval(local);
+        modify(bind[i].first, v, local_l);
+    }
+    return body->eval(local_l);
+} // letrec expression
 
 Value Var::eval(Assoc &e) {
-    //std::cout << "evaluating var" << std::endl;
+    // std::cout << "evaluating var" << std::endl;
+    //     for (auto i = e; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    //     }
+    // std::cout << x << std::endl;
     Value v = find(x, e);
     if (v.get() == nullptr) { throw RuntimeError("undefined var"); }
+    // if (v->v_type == V_PROC) {
+    //     Closure* clos = dynamic_cast<Closure*>(v.get());
+    //     clos->env = e;
+    //     // for (auto i = e; i.get() != nullptr; i = i->next) {
+    //     //     if ((find(i->x, clos->env)).get() == nullptr){
+    //     //     clos->env = extend(i->x, i->v, clos->env, i->def);
+    //     //     }
+    //     // }
+    // }
+    // std::cout << "found " << x << " ";
+    // v->show(std::cout);
+    // std::cout << std::endl;
     //std::cout << "var is defined" << std::endl;
     return v;
 } // evaluation of variable
@@ -50,8 +149,15 @@ Value Fixnum::eval(Assoc &e) {
 } // evaluation of a fixnum
 
 Value If::eval(Assoc &e) {
-    Value condition = cond->eval(e);
     //std::cout << "in if" << std::endl;
+    Value condition = cond->eval(e);
+    // std::cout << "in e_if" << std::endl;
+    // for (auto i = e; i.get() != nullptr; i = i->next) {
+    //     std::cout << i->x << " ";
+    //     i->v->show(std::cout);
+    //     std::cout << std::endl;
+    // }
+    
     if (condition->v_type == V_BOOL) {
         Boolean* bo = dynamic_cast<Boolean*>(condition.get());
         if (bo->b) {
@@ -96,11 +202,16 @@ Value Quote::eval(Assoc &e) {
         }
         int len = list->stxs.size();
         //std::cout << len << std::endl;
-        if (len == 3 && list->stxs[1]->get_type() == E_DOT) {
+        //with dot in list (whether simplified or not)
+        if (len >= 3 && list->stxs[len - 2]->get_type() == E_DOT) {
             //std::cout << "hello" << std::endl;
-            return PairV(Quote(list->stxs[0]).eval(e), 
-                        (Quote(list->stxs[2]).eval(e)));
+            Value v = Quote(list->stxs[len - 1]).eval(e);
+            for (int i = len - 3; i >= 0; --i) {
+                v = PairV(Quote(list->stxs[i]).eval(e), v);
+            }
+            return v;
         }
+        //without dot in list
         Value v1 = NullV();
         for (int i = len - 1; i >= 0; --i) {
             v1 = PairV(Quote(list->stxs[i]).eval(e), v1);
@@ -122,6 +233,22 @@ Value Exit::eval(Assoc &e) {
 Value Binary::eval(Assoc &e) {
     Value first = rand1->eval(e);
     Value second = rand2->eval(e);
+    // if (first->v_type == V_PROC) {
+    //     Closure* clos = dynamic_cast<Closure*>(first.get());
+    //     Value v1 = clos->e->eval(e);
+    //     first = v1;
+    //     std::cout << "hihihi" << std::endl;
+    // }
+    // if (second->v_type == V_PROC) {
+    //     std::cout << "hihihi" << std::endl;
+    //     Closure* clos = dynamic_cast<Closure*>(second.get());
+    //     Value v2 = (clos->e)->eval(e);
+    //     second = v2;
+    // }
+    //std::cout << "hey" << std::endl;
+
+    //std::cout << "first: "; first->show(std::cout);std::cout << std::endl;
+    //std::cout << "second: "; second->show(std::cout); std::cout << std::endl;
     if (e_type == E_PLUS) {
         Plus* plus = dynamic_cast<Plus*>(this);
         return plus->evalRator(first, second);
@@ -199,14 +326,22 @@ Value Unary::eval(Assoc &e) {
         Not* no = dynamic_cast<Not*>(this);
         return no->evalRator(u);
     }
+    if (e_type == E_PROCQ) {
+        IsProcedure* isp = dynamic_cast<IsProcedure*>(this);
+        return isp->evalRator(u);
+    }
     
 } // evaluation of single-operator primitive
 
 Value Mult::evalRator(const Value &rand1, const Value &rand2) {
-    //std::cout << "gethere" << std::endl;
+    //std::cout << "in mult" << std::endl;
+    (exit);
+    // rand1->show(std::cout); std::cout << std::endl;
+    // rand2->show(std::cout);std::cout << std::endl;
     if (rand1->v_type != V_INT || rand2->v_type != V_INT) { throw RuntimeError("invaild type"); }
     Integer* first = dynamic_cast<Integer*>(rand1.get());
     Integer* second = dynamic_cast<Integer*>(rand2.get());
+    //std::cout << "hi" << std::endl;
     return IntegerV(first->n * second->n);
 } // *
 
@@ -218,9 +353,14 @@ Value Plus::evalRator(const Value &rand1, const Value &rand2) {
 } // +
 
 Value Minus::evalRator(const Value &rand1, const Value &rand2) {
+    // std::cout << "in minus" << std::endl;
+    // (exit);
     if (rand1->v_type != V_INT || rand2->v_type != V_INT) { throw RuntimeError("invaild type"); }
     Integer* first = dynamic_cast<Integer*>(rand1.get());
     Integer* second = dynamic_cast<Integer*>(rand2.get());
+    //  rand1->show(std::cout); std::cout << std::endl;
+    // rand2->show(std::cout);std::cout << std::endl;
+    //std::cout << "hi" << std::endl;
     return IntegerV(first->n - second->n);
 } // -
 
@@ -245,9 +385,15 @@ Value LessEq::evalRator(const Value &rand1, const Value &rand2) {
 } // <=
 
 Value Equal::evalRator(const Value &rand1, const Value &rand2) {
-    if (rand1->v_type != V_INT || rand2->v_type != V_INT) { throw RuntimeError("invalid type"); }
+    //std::cout << "in eq" << std::endl;
+    if (rand1->v_type != V_INT || rand2->v_type != V_INT) { 
+        // rand1->show(std::cout); std::cout << std::endl;
+        // rand2->show(std::cout);std::cout << std::endl;
+        throw RuntimeError("invalid type"); 
+    }
     Integer* first = dynamic_cast<Integer*>(rand1.get());
     Integer* second = dynamic_cast<Integer*>(rand2.get());
+    //std::cout << "nice" << std::endl;
     if (first->n == second->n) {
         return BooleanV(true);
     }
@@ -326,7 +472,6 @@ Value IsPair::evalRator(const Value &rand) {
 } // pair?
 
 Value IsProcedure::evalRator(const Value &rand) {
-    //?
     if (rand->v_type != V_PROC) { return BooleanV(false); }
     return BooleanV(true);
 } // procedure?

@@ -1,8 +1,9 @@
 #include "value.hpp"
+#include "Def.hpp"
 #include <iostream>
 
-AssocList::AssocList(const std::string &x, const Value &v, Assoc &next)
-  : x(x), v(v), next(next) {}
+AssocList::AssocList(const std::string &x, const Value &v, Assoc &next, bool a)
+  : x(x), v(v), next(next), def(a) {}
 
 Assoc::Assoc(AssocList *x) : ptr(x) {}
 AssocList* Assoc :: operator -> () const { return ptr.get(); }
@@ -13,9 +14,9 @@ Assoc empty() {
   return Assoc(nullptr);
 }
 
-Assoc extend(const std::string &x, const Value &v, Assoc &lst)
+Assoc extend(const std::string &x, const Value &v, Assoc &lst, bool def)
 {
-    return Assoc(new AssocList(x, v, lst));
+    return Assoc(new AssocList(x, v, lst, def));
 }
 
 void modify(const std::string &x, const Value &v, Assoc &lst)
@@ -24,6 +25,7 @@ void modify(const std::string &x, const Value &v, Assoc &lst)
         if (x == i -> x)
         {
             i -> v = v;
+            i->def = true;
             return;
         }
 }
@@ -32,10 +34,14 @@ Value find(const std::string &x, Assoc &l) {
   //std::cout << "start to find " << x << std::endl;
   for (auto i = l; i.get() != nullptr; i = i -> next) {
     //std::cout << "init" << std::endl;
-    if (x == i -> x)
+    if (x == i -> x && i->def == true) {
       return i -> v;
+    }
+    // if (x == i->x && i->def == false) {
+    //   std::cout << "not initialized" << std::endl;
+    // }
   }
-  //std::cout << "not found" << std::endl;
+  //std::cout << "not found" << x << std::endl;
   return Value(nullptr);
 }
 
@@ -139,4 +145,32 @@ Closure::Closure(const std::vector<std::string> &xs, const Expr &e, const Assoc 
   : ValueBase(V_PROC), parameters(xs), e(e), env(env) {}
 Value ClosureV(const std::vector<std::string> &xs, const Expr &e, const Assoc &env) {
   return Value(new Closure(xs, e, env));
+}
+
+bool in(ExprType a) {
+   switch (a) {
+    case E_MUL: return true;
+    case E_MINUS: return true;
+    case E_PLUS: return true;
+    case E_LT: return true;
+    case E_LE: return true;
+    case E_EQ: return true;
+    case E_GE: return true;
+    case E_GT: return true;
+    case E_VOID: return true;
+    case E_EQQ: return true;
+    case E_BOOLQ: return true;
+    case E_INTQ: return true;
+    case E_NULLQ: return true;
+    case E_PAIRQ: return true;
+    case E_PROCQ: return true;
+    case E_SYMBOLQ: return true;
+    case E_CONS: return true;
+    case E_NOT: return true;
+    case E_CAR: return true;
+    case E_CDR: return true;
+    case E_EXIT: return true;
+    default: break;
+  }
+  return false;
 }

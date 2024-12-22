@@ -35,8 +35,9 @@ struct Assoc {
 struct AssocList {
   std::string x;
   Value v;
+  bool def = false;
   Assoc next;
-  AssocList(const std::string &, const Value &, Assoc &);
+  AssocList(const std::string &, const Value &, Assoc &, bool);
 };
 
 struct Void : ValueBase {
@@ -108,7 +109,8 @@ Value StringV(const std :: string &);
 std::ostream &operator<<(std::ostream &, Value &);
 
 Assoc empty();
-Assoc extend(const std :: string&, const Value &, Assoc &);
+Assoc extend(const std :: string&, const Value &, Assoc &, bool);
 void modify(const std :: string&, const Value &, Assoc &);
 Value find(const std::string &, Assoc &);
+bool in(ExprType);
 #endif
