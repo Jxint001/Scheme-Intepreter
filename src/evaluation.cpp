@@ -12,7 +12,7 @@ extern std :: map<std :: string, ExprType> primitives;
 extern std :: map<std :: string, ExprType> reserved_words;
 
 Value Let::eval(Assoc &env) {
-    //std::cout << "hi" << std::endl;
+    //std::cout << body->e_type << std::endl;//+
     Assoc local = env;
     std::vector < std::pair<std::string, Value>> vec;
     for (int i = 0; i < bind.size(); ++i) {
@@ -28,17 +28,23 @@ Value Lambda::eval(Assoc &env) {
 
 Value Apply::eval(Assoc &e) {
     //std::cout << "hellll" << std::endl;
-    Value cl = rator->eval(e);
+    Assoc e1 = e;
+    Value cl = rator->eval(e1);
     //std::cout << rator->e_type << std::endl;
     if (cl->v_type != V_PROC) {
         throw RuntimeError("not a function");
     }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
-    if (clos->parameters.size() != rand.size() ){ throw RuntimeError("incorrect number of paras"); }
+    if (clos->parameters.size() != rand.size() ){ 
+        //std::cout << "clospara_size: " << clos->parameters.size();
+        //std::cout << " rand_size: " << rand.size() << std::endl;
+        throw RuntimeError("incorrect number of paras"); 
+        }
     Assoc local = clos->env;
     std::vector<Value> v_to_bind;
     for (int i = 0; i < rand.size(); ++i) {
-        v_to_bind.push_back(rand[i]->eval(e));
+        Assoc e2 = e;
+        v_to_bind.push_back(rand[i]->eval(e2));
     }
     for (int i = 0; i < clos->parameters.size(); ++i) {
         local = extend(clos->parameters[i], v_to_bind[i], local);
@@ -54,7 +60,7 @@ Value Letrec::eval(Assoc &env) {
         if ((find(bind[i].first, local)).get() == nullptr) {
             local = extend(bind[i].first, Value(nullptr), local);
         } else {
-            //modify(bind[i].first, NullV(), local);
+            modify(bind[i].first, NullV(), local);
         }
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
@@ -66,22 +72,6 @@ Value Letrec::eval(Assoc &env) {
     }
     return body->eval(local);
 } // letrec 
-
-// Value Letrec::eval(Assoc &env) {
-//     Assoc e1 = env;
-//     for (int i = 0; i < bind.size(); i++) 
-//         e1 = extend(bind[i].first, Value(nullptr), e1);
-//     std::vector<std::pair<std::string, Value>> bind_value;
-//     for (int i = 0; i < bind.size(); i++) {
-//         bind_value.push_back(std::make_pair(bind[i].first, bind[i].second->eval(e1)));
-//     }
-//     Assoc e2 = e1;
-//     for (int i = 0; i < bind_value.size(); i++) {
-//         modify(bind_value[i].first, bind_value[i].second, e2);
-//     }
-//     return body->eval(e2);
-// } // letrec expression
-
 
 Value Var::eval(Assoc &e) {
     Value v = find(x, e);

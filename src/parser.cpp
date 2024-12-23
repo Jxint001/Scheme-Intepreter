@@ -60,7 +60,7 @@ Expr List :: parse(Assoc &env) {
     ExprType eptype = stxs[0]->get_type();
     string w_num = "incorrect number of parameterssss";
 
-    if(id != nullptr && primitives.find(id->s) == primitives.end()){
+    if(id != nullptr){
         bool usedf=0;
         for(auto i = env; i.get() != nullptr; i = i->next)
             if(i->x == id->s) { usedf = 1;  break; }
@@ -192,8 +192,8 @@ Expr List :: parse(Assoc &env) {
             Identifier* id = dynamic_cast<Identifier*>(paras->stxs[i].get());
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
             xs.push_back(id->s);
-            //if ((find(id->s, env)).get() == nullptr)  
-            e = extend(id->s, Value(nullptr), e);
+            if ((find(id->s, env)).get() == nullptr)  
+            e = extend(id->s, NullV(), e);
         }
         return Expr(new Lambda(xs, stxs[2]->parse(e)));
     }
@@ -217,7 +217,8 @@ Expr List :: parse(Assoc &env) {
             vec.push_back(mp(name->s, expr));
             if (eptype == E_LETREC) {
                 e = extend(name->s, NullV(), e);
-            } else {
+            }
+            else {
                 e = extend(name->s, Value(nullptr), e);
             }
         }

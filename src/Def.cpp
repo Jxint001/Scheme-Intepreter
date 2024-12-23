@@ -76,7 +76,7 @@ void initfunctions(Assoc& g) {
                 g = extend(i.first, ClosureV(bi, Expr(new Greater(new Var("#"), new Var("@"))), g), g);
                 break; 
             case E_VOID:
-                g = extend(i.first, ClosureV(un, Expr(new MakeVoid()), g), g);
+                g = extend(i.first, ClosureV(std::vector<std::string>(), Expr(new MakeVoid()), g), g);
                 break;
             case E_EQQ:
                 g = extend(i.first, ClosureV(bi, Expr(new IsEq(new Var("#"), new Var("@"))), g), g);
@@ -112,7 +112,7 @@ void initfunctions(Assoc& g) {
                 g = extend(i.first, ClosureV(un, Expr(new Cdr(new Var("#"))), g), g);
                 break; 
             case E_EXIT:
-                g = extend(i.first, ClosureV(un, Expr(new Exit()), g), g);
+                g = extend(i.first, ClosureV(std::vector<std::string>(), Expr(new Exit()), g), g);
                 break; 
             default: break;
         }
