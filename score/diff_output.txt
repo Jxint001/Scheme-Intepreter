@@ -1,4 +1,4 @@
 1c1
-< Not A Pair
+< RuntimeError
 ---
 > 3628800

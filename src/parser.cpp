@@ -30,8 +30,7 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-  
-    env = extend(s, NullV(), env);
+    //env = extend(s, NullV(), env);
 
     return Expr(new Var(s));
 }
@@ -67,9 +66,9 @@ Expr List :: parse(Assoc &env) {
             if(i->x == id->s) { usedf = 1;  break; }
         if(usedf){
             //std::cout<<"used function "<< id->s << std::endl;
+            //std::cout << "syxs size" << stxs.size() << std::endl;
             vector<Expr> expr;
-            for(int i = 1; i < stxs.size(); ++i)
-            expr.push_back(stxs[i]->parse(env));
+            for(int i = 1; i < stxs.size(); ++i)  expr.push_back(stxs[i]->parse(env));
             return Expr(new Apply(stxs[0]->parse(env), expr));
         }
     }
@@ -181,7 +180,9 @@ Expr List :: parse(Assoc &env) {
         return Expr(new If(stxs[1]->parse(env), stxs[2]->parse(env), stxs[3]->parse(env)));
     }
     if (eptype == E_LAMBDA) {
-        if (stxs.size() != 3) { throw RuntimeError(w_num); }
+        //std::cout << "llllllam" << std::endl;
+        if (stxs.size() != 3) { //std::cout << "hey" << std::endl;
+        throw RuntimeError(w_num); }
         if (stxs[1]->get_type() != E_LIST) { throw RuntimeError("invalid type"); }
 
         Assoc e = env;
@@ -192,7 +193,7 @@ Expr List :: parse(Assoc &env) {
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
             xs.push_back(id->s);
             //if ((find(id->s, env)).get() == nullptr)  
-            e = extend(id->s, Value(nullptr), e);
+            e = extend(id->s, NullV(), e);
         }
         return Expr(new Lambda(xs, stxs[2]->parse(e)));
     }
@@ -212,52 +213,13 @@ Expr List :: parse(Assoc &env) {
             Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
             if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
             throw RuntimeError("Not A Var"); }
-            // if (eptype == E_LETREC) {
-            //     bool usedf = 0;
-            //     for(auto i = env; i.get() != nullptr; i = i->next)
-            //         if(i->x == name->s) { usedf = 1;  break; }
-            //     if(!usedf){
-            //         env = extend(name->s, NullV(), env, 0);
-            //     }
-            // }
             Expr expr = var->stxs[1]->parse(env);
             vec.push_back(mp(name->s, expr));
-            e = extend(name->s, Value(nullptr), e);
+            if (eptype == E_LETREC) {
+                e = extend(name->s, NullV(), e);
+            }
         }
-
-        // if (stxs[2]->get_type() == E_LIST) {
-        //     List* es = dynamic_cast<List*>(stxs[2].get());
-        //     if (es->stxs.empty()) {
-        //         if (eptype == E_LET)  return Expr(new Let(vec, new MakeVoid()));
-        //         return Expr(new Letrec(vec, new MakeVoid()));
-        //     }
-            
-        //     Identifier* id = dynamic_cast<Identifier*>(es->stxs[0].get());
-        //     if (id == nullptr) { throw RuntimeError("invalid expression"); }
-
-        //     Expr var = Expr(nullptr);
-            
-        //     if (reserved_words.find(id->s) != reserved_words.end() 
-        //     && (find(id->s, env).get()) == nullptr) {
-        //         if (eptype == E_LET)  return Expr(new Let(vec, es->parse(env)));
-        //         return Expr(new Letrec(vec, es->parse(env)));
-                
-        //     } else {
-        //         var = new Var(id->s);
-        //     }
-        //     if (es->stxs[0]->get_type() == E_LET || es->stxs[0]->get_type() == E_LETREC) {
-        //         //std::cout << "jump" << std::endl;
-        //         goto jump;
-        //     }
-        //     vector<Expr> expr;
-        //     for (int i = 1; i < es->stxs.size(); ++i) {
-        //         expr.push_back(es->stxs[i]->parse(env));
-        //     }
-        //     if (eptype == E_LET)  return Expr(new Let(vec, new Apply(var, expr)));
-        //     return Expr(new Letrec(vec, new Apply(var, expr)));
-        // }
-        // jump:
-        Expr body = stxs[2].parse(e);
+        Expr body = stxs[2]->parse(e);
         if (eptype == E_LET)  return Expr(new Let(vec, body));
         return Expr(new Letrec(vec, body));
     }
@@ -265,7 +227,6 @@ Expr List :: parse(Assoc &env) {
     for (int i = 1; i < stxs.size(); ++i) {
         expr.push_back(stxs[i]->parse(env));
     }
-    //std::cout << "apply" << std::endl;
     return Expr(new Apply(stxs[0]->parse(env), expr));
 }
 

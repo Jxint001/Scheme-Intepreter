@@ -28,45 +28,21 @@ Value Lambda::eval(Assoc &env) {
 
 Value Apply::eval(Assoc &e) {
     //std::cout << "hellll" << std::endl;
-    Assoc e1 = e;
-    Value cl = rator.get()->eval(e1);
+    Value cl = rator->eval(e);
     //std::cout << rator->e_type << std::endl;
     if (cl->v_type != V_PROC) {
-        // std::cout << cl->v_type << std::endl;
-        // std::cout << rator->e_type << std::endl;
         throw RuntimeError("not a function");
     }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
-    if (clos->parameters.size() != rand.size() )
-    //&& (!in(clos->e->e_type)))
-    { //std::cout << "in apply "; 
-    throw RuntimeError("incorrect number of paras"); }
-
-    // std::cout << "finished rator" << std::endl;
-
-    // std::cout << "clos->env" << std::endl;
-    // for (auto i = clos->env; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    // }
-    // std::cout << "rand size: " << rand.size() << std::endl;
-    // std::cout << std::endl;
+    if (clos->parameters.size() != rand.size() ){ throw RuntimeError("incorrect number of paras"); }
     Assoc local = clos->env;
+    std::vector<Value> v_to_bind;
     for (int i = 0; i < rand.size(); ++i) {
-        Assoc e2 = e;
-        Value v = rand[i]->eval(e2);
-        std::string target = clos->parameters[i];
-        local = extend(target, v, local);
+        v_to_bind.push_back(rand[i]->eval(e));
     }
-
-    // std::cout << "after_edit_clos->env" << std::endl;
-    // for (auto i = clos->env; i.get() != nullptr; i = i->next) {
-    //     std::cout << i->x << " ";
-    //     i->v->show(std::cout);
-    //     std::cout << std::endl;
-    // }
-    //std::cout << std::endl;
+    for (int i = 0; i < clos->parameters.size(); ++i) {
+        local = extend(clos->parameters[i], v_to_bind[i], local);
+    }
        
     return (clos->e)->eval(local);
 } // for function calling
@@ -75,7 +51,11 @@ Value Letrec::eval(Assoc &env) {
     //std::cout << "letrec" << std::endl;
     Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
-       local = extend(bind[i].first, Value(nullptr), local);
+        if ((find(bind[i].first, local)).get() == nullptr) {
+            local = extend(bind[i].first, Value(nullptr), local);
+        } else {
+            modify(bind[i].first, Value(nullptr), local);
+        }
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
     for (int i = 0; i < bind.size(); ++i) {
@@ -89,12 +69,8 @@ Value Letrec::eval(Assoc &env) {
 
 Value Var::eval(Assoc &e) {
     Value v = find(x, e);
-    if (v.get() == nullptr) {// std::cout << x << std::endl;
+    if (v.get() == nullptr) { //std::cout << x << std::endl;
     throw RuntimeError("undefined var"); }
-    if (v->v_type == V_PROC) {
-        Closure* clos = dynamic_cast<Closure*>(v.get());
-        //clos->env = merge(clos->env, e);
-    }
     return v;
 } // evaluation of variable
 
@@ -436,6 +412,7 @@ Value Not::evalRator(const Value &rand) {
 Value Car::evalRator(const Value &rand) {
     if (rand->v_type != V_PAIR) { 
         //rand->show(std::cout);std::cout << std::endl;
+        //std::cout << rand->v_type << std::endl;
         throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
     return p->car;
@@ -443,7 +420,7 @@ Value Car::evalRator(const Value &rand) {
 
 Value Cdr::evalRator(const Value &rand) {
     if (rand->v_type != V_PAIR) { 
-        //rand->show(std::cout);std::cout << std::endl;
+        
         throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
     return p->cdr;
