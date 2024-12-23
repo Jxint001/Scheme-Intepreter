@@ -30,7 +30,7 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-    //env = extend(s, NullV(), env);
+    env = extend(s, NullV(), env);
 
     return Expr(new Var(s));
 }
@@ -217,6 +217,8 @@ Expr List :: parse(Assoc &env) {
             vec.push_back(mp(name->s, expr));
             if (eptype == E_LETREC) {
                 e = extend(name->s, NullV(), e);
+            } else {
+                e = extend(name->s, Value(nullptr), e);
             }
         }
         Expr body = stxs[2]->parse(e);

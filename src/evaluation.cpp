@@ -54,7 +54,7 @@ Value Letrec::eval(Assoc &env) {
         if ((find(bind[i].first, local)).get() == nullptr) {
             local = extend(bind[i].first, Value(nullptr), local);
         } else {
-            modify(bind[i].first, Value(nullptr), local);
+            //modify(bind[i].first, NullV(), local);
         }
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
@@ -65,7 +65,23 @@ Value Letrec::eval(Assoc &env) {
         modify(value_to_bind[i].first, value_to_bind[i].second, local);
     }
     return body->eval(local);
-} // letrec expression
+} // letrec 
+
+// Value Letrec::eval(Assoc &env) {
+//     Assoc e1 = env;
+//     for (int i = 0; i < bind.size(); i++) 
+//         e1 = extend(bind[i].first, Value(nullptr), e1);
+//     std::vector<std::pair<std::string, Value>> bind_value;
+//     for (int i = 0; i < bind.size(); i++) {
+//         bind_value.push_back(std::make_pair(bind[i].first, bind[i].second->eval(e1)));
+//     }
+//     Assoc e2 = e1;
+//     for (int i = 0; i < bind_value.size(); i++) {
+//         modify(bind_value[i].first, bind_value[i].second, e2);
+//     }
+//     return body->eval(e2);
+// } // letrec expression
+
 
 Value Var::eval(Assoc &e) {
     Value v = find(x, e);
@@ -121,7 +137,7 @@ Value Quote::eval(Assoc &e) {
     }
     if (s->get_type() == E_LIST) {
         List* list = dynamic_cast<List*>(s.get());
-        if (!list->stxs.size()) {
+        if (list->stxs.empty()) {
             return NullV();
         }
         int len = list->stxs.size();
