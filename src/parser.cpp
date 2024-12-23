@@ -20,6 +20,8 @@ using std :: pair;
 extern std :: map<std :: string, ExprType> primitives;
 extern std :: map<std :: string, ExprType> reserved_words;
 
+Value place = SymbolV("not_assigned");
+
 Expr Syntax :: parse(Assoc &env) {
     return (*this)->parse(env);
 }
@@ -191,13 +193,12 @@ Expr List :: parse(Assoc &env) {
         for (int i = 0; i < paras->stxs.size(); ++i) {
             Identifier* id = dynamic_cast<Identifier*>(paras->stxs[i].get());
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
-            xs.push_back(id->s);
-            if ((find(id->s, env)).get() == nullptr)  
-            e = extend(id->s, NullV(), e);
+            xs.push_back(id->s); 
+            e = extend(id->s, place, e);
         }
         return Expr(new Lambda(xs, stxs[2]->parse(e)));
     }
-    if (eptype == E_LET || eptype == E_LETREC) {
+    if (eptype == E_LET) {
         if (stxs.size() != 3) { throw RuntimeError(w_num); }
 
         if (stxs[1]->get_type() != E_LIST) { throw RuntimeError("Not A List"); }
@@ -213,17 +214,41 @@ Expr List :: parse(Assoc &env) {
             Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
             if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
             throw RuntimeError("Not A Var"); }
-            Expr expr = var->stxs[1]->parse(env);
+            Assoc env2 = env;
+            Expr expr = var->stxs[1]->parse(env2);
             vec.push_back(mp(name->s, expr));
-            if (eptype == E_LETREC) {
-                e = extend(name->s, NullV(), e);
-            }
-            else {
-                e = extend(name->s, Value(nullptr), e);
-            }
+            e = extend(name->s, place, e);
         }
         Expr body = stxs[2]->parse(e);
-        if (eptype == E_LET)  return Expr(new Let(vec, body));
+        return Expr(new Let(vec, body));
+        
+    }
+    if (eptype == E_LETREC) {
+        if (stxs.size() != 3) { throw RuntimeError(w_num); }
+
+        if (stxs[1]->get_type() != E_LIST) { throw RuntimeError("Not A List"); }
+        List* paras = dynamic_cast<List*>(stxs[1].get());
+        vector< pair<string, Expr>> vec;
+
+        Assoc e = env;
+        for (int i = 0; i < paras->stxs.size(); ++i) {
+            if (paras->stxs[i]->get_type() != E_LIST) { throw RuntimeError("Not A List"); }
+            List* var = dynamic_cast<List*>(paras->stxs[i].get());
+            if (var->stxs.size() != 2) { throw RuntimeError(w_num); }
+            //a var
+            Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
+            if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
+            throw RuntimeError("Not A Var"); }
+            e = extend(name->s, place, e);
+        }
+        for (int i = 0; i < paras->stxs.size(); ++i) {
+            List* var = dynamic_cast<List*>(paras->stxs[i].get());
+            Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
+            Assoc env2 = e;
+            Expr expr = var->stxs[1]->parse(env2);
+            vec.push_back(mp(name->s, expr));
+        }
+        Expr body = stxs[2]->parse(e);
         return Expr(new Letrec(vec, body));
     }
     vector<Expr> expr;

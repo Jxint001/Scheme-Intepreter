@@ -35,9 +35,9 @@ Value Apply::eval(Assoc &e) {
         throw RuntimeError("not a function");
     }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
-    if (clos->parameters.size() != rand.size() ){ 
-        //std::cout << "clospara_size: " << clos->parameters.size();
-        //std::cout << " rand_size: " << rand.size() << std::endl;
+    if (clos->parameters.size() != rand.size() ){
+        // std::cout << "clospara_size: " << clos->parameters.size();
+        // std::cout << " rand_size: " << rand.size() << std::endl;
         throw RuntimeError("incorrect number of paras"); 
         }
     Assoc local = clos->env;
@@ -57,26 +57,29 @@ Value Letrec::eval(Assoc &env) {
     //std::cout << "letrec" << std::endl;
     Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
-        if ((find(bind[i].first, local)).get() == nullptr) {
-            local = extend(bind[i].first, Value(nullptr), local);
-        } else {
-            modify(bind[i].first, NullV(), local);
-        }
+        //if ((find(bind[i].first, local)).get() == nullptr) {
+        local = extend(bind[i].first, Value(nullptr), local);
+        //} else {
+            //modify(bind[i].first, NullV(), local);
+        //}
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
     for (int i = 0; i < bind.size(); ++i) {
-        value_to_bind.push_back(std::make_pair(bind[i].first, bind[i].second->eval(local)));
+        Assoc tmp = local;
+        value_to_bind.push_back(std::make_pair(bind[i].first, bind[i].second->eval(tmp)));
     }
     for (int i = 0; i < value_to_bind.size(); ++i) {
         modify(value_to_bind[i].first, value_to_bind[i].second, local);
+        //update(value_to_bind[i].second, local);
     }
     return body->eval(local);
-} // letrec 
+} // letrec expression
 
 Value Var::eval(Assoc &e) {
     Value v = find(x, e);
     if (v.get() == nullptr) { //std::cout << x << std::endl;
     throw RuntimeError("undefined var"); }
+    //update(v, e);
     return v;
 } // evaluation of variable
 
@@ -417,8 +420,8 @@ Value Not::evalRator(const Value &rand) {
 
 Value Car::evalRator(const Value &rand) {
     if (rand->v_type != V_PAIR) { 
-        //rand->show(std::cout);std::cout << std::endl;
-        //std::cout << rand->v_type << std::endl;
+        // rand->show(std::cout);std::cout << std::endl;
+        // std::cout << rand->v_type << std::endl;
         throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
     return p->car;

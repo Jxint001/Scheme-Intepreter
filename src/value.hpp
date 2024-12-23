@@ -112,5 +112,5 @@ Assoc extend(const std :: string&, const Value &, Assoc &);
 void modify(const std :: string&, const Value &, Assoc &);
 Value find(const std::string &, Assoc &);
 bool in(ExprType);
-Assoc merge(Assoc&, Assoc&);
+void update(Value&, Assoc&);
 #endif

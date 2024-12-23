@@ -19,14 +19,22 @@ Assoc extend(const std::string &x, const Value &v, Assoc &lst)
     return Assoc(new AssocList(x, v, lst));
 }
 
-Assoc merge(Assoc& target, Assoc& remain) {
-  Assoc tmp = remain;
-  for (auto i = target; i.get() != nullptr; i = i->next) {
-    if ((find(i->x, tmp)).get() == nullptr) {
-      tmp = extend(i->x, i->v, tmp);
+void update(Value& v, Assoc& e) {
+  if (v->v_type == V_PROC) {
+    Closure* clos = dynamic_cast<Closure*>(v.get());
+    for (auto i = e; i.get() != nullptr; i = i->next) {
+      if ((find(i->x, clos->env)).get() != nullptr) {
+        modify(i->x, i->v, clos->env);
+      } else {
+        extend(i->x, i->v, clos->env);
+      }
     }
   }
-  return tmp;
+  if (v->v_type == V_PAIR) {
+    Pair* p = dynamic_cast<Pair*>(v.get());
+    update(p->car, e);
+    update(p->cdr, e);
+  }
 }
 
 void modify(const std::string &x, const Value &v, Assoc &lst)
