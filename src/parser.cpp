@@ -30,13 +30,9 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-    bool flag = 0;
-    for (auto i = env; i.get() != nullptr; i = i->next) {
-        if (i->x == s) { flag = 1;  break; }
-    }
-    if (!flag) {
-        env = extend(s, NullV(), env, 0);
-    }
+  
+    env = extend(s, NullV(), env);
+
     return Expr(new Var(s));
 }
 ExprType Identifier :: get_type() { 
@@ -63,7 +59,7 @@ Expr List :: parse(Assoc &env) {
     }
     Identifier* id = dynamic_cast<Identifier*>(stxs[0].get());
     ExprType eptype = stxs[0]->get_type();
-    string w_num = "incorrect number of parameters";
+    string w_num = "incorrect number of parameterssss";
 
     if(id != nullptr && primitives.find(id->s) == primitives.end()){
         bool usedf=0;
@@ -187,15 +183,18 @@ Expr List :: parse(Assoc &env) {
     if (eptype == E_LAMBDA) {
         if (stxs.size() != 3) { throw RuntimeError(w_num); }
         if (stxs[1]->get_type() != E_LIST) { throw RuntimeError("invalid type"); }
+
+        Assoc e = env;
         List* paras = dynamic_cast<List*>(stxs[1].get());
         vector<string> xs;
         for (int i = 0; i < paras->stxs.size(); ++i) {
             Identifier* id = dynamic_cast<Identifier*>(paras->stxs[i].get());
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
             xs.push_back(id->s);
-            env = extend(id->s, Value(nullptr), env, 0);
+            //if ((find(id->s, env)).get() == nullptr)  
+            e = extend(id->s, Value(nullptr), e);
         }
-        return Expr(new Lambda(xs, stxs[2]->parse(env)));
+        return Expr(new Lambda(xs, stxs[2]->parse(e)));
     }
     if (eptype == E_LET || eptype == E_LETREC) {
         if (stxs.size() != 3) { throw RuntimeError(w_num); }
@@ -204,6 +203,7 @@ Expr List :: parse(Assoc &env) {
         List* paras = dynamic_cast<List*>(stxs[1].get());
         vector< pair<string, Expr>> vec;
 
+        Assoc e = env;
         for (int i = 0; i < paras->stxs.size(); ++i) {
             if (paras->stxs[i]->get_type() != E_LIST) { throw RuntimeError("Not A List"); }
             List* var = dynamic_cast<List*>(paras->stxs[i].get());
@@ -222,38 +222,42 @@ Expr List :: parse(Assoc &env) {
             // }
             Expr expr = var->stxs[1]->parse(env);
             vec.push_back(mp(name->s, expr));
+            e = extend(name->s, Value(nullptr), e);
         }
 
-        if (stxs[2]->get_type() == E_LIST) {
-            List* es = dynamic_cast<List*>(stxs[2].get());
-            if (es->stxs.empty()) {
-                if (eptype == E_LET)  return Expr(new Let(vec, new MakeVoid()));
-                return Expr(new Letrec(vec, new MakeVoid()));
-            }
-            if (es->stxs[0]->get_type() == E_LET || es->stxs[0]->get_type() == E_LETREC) {
-                //std::cout << "jump" << std::endl;
-                goto jump;
-            }
-            Identifier* id = dynamic_cast<Identifier*>(es->stxs[0].get());
-            if (id == nullptr) { throw RuntimeError("invalid expression"); }
-
-            Expr var = Expr(nullptr);
-            if (reserved_words.find(id->s) == reserved_words.end()) {
-                var = new Var(id->s);
-            } else {
-                if (eptype == E_LET)  return Expr(new Let(vec, es->parse(env)));
-                return Expr(new Letrec(vec, es->parse(env)));
-            }
+        // if (stxs[2]->get_type() == E_LIST) {
+        //     List* es = dynamic_cast<List*>(stxs[2].get());
+        //     if (es->stxs.empty()) {
+        //         if (eptype == E_LET)  return Expr(new Let(vec, new MakeVoid()));
+        //         return Expr(new Letrec(vec, new MakeVoid()));
+        //     }
             
-            vector<Expr> expr;
-            for (int i = 1; i < es->stxs.size(); ++i) {
-                expr.push_back(es->stxs[i]->parse(env));
-            }
-            if (eptype == E_LET)  return Expr(new Let(vec, new Apply(var, expr)));
-            return Expr(new Letrec(vec, new Apply(var, expr)));
-        }
-        jump:
-        Expr body = stxs[2].parse(env);
+        //     Identifier* id = dynamic_cast<Identifier*>(es->stxs[0].get());
+        //     if (id == nullptr) { throw RuntimeError("invalid expression"); }
+
+        //     Expr var = Expr(nullptr);
+            
+        //     if (reserved_words.find(id->s) != reserved_words.end() 
+        //     && (find(id->s, env).get()) == nullptr) {
+        //         if (eptype == E_LET)  return Expr(new Let(vec, es->parse(env)));
+        //         return Expr(new Letrec(vec, es->parse(env)));
+                
+        //     } else {
+        //         var = new Var(id->s);
+        //     }
+        //     if (es->stxs[0]->get_type() == E_LET || es->stxs[0]->get_type() == E_LETREC) {
+        //         //std::cout << "jump" << std::endl;
+        //         goto jump;
+        //     }
+        //     vector<Expr> expr;
+        //     for (int i = 1; i < es->stxs.size(); ++i) {
+        //         expr.push_back(es->stxs[i]->parse(env));
+        //     }
+        //     if (eptype == E_LET)  return Expr(new Let(vec, new Apply(var, expr)));
+        //     return Expr(new Letrec(vec, new Apply(var, expr)));
+        // }
+        // jump:
+        Expr body = stxs[2].parse(e);
         if (eptype == E_LET)  return Expr(new Let(vec, body));
         return Expr(new Letrec(vec, body));
     }

@@ -16,7 +16,8 @@ Value Let::eval(Assoc &env) {
     Assoc local = env;
     std::vector < std::pair<std::string, Value>> vec;
     for (int i = 0; i < bind.size(); ++i) {
-        local = extend(bind[i].first, bind[i].second->eval(env), local, 1);
+        Assoc env1 = env;
+        local = extend(bind[i].first, bind[i].second->eval(env1), local);
     }
     return body->eval(local);
 } // let expression
@@ -28,7 +29,7 @@ Value Lambda::eval(Assoc &env) {
 Value Apply::eval(Assoc &e) {
     //std::cout << "hellll" << std::endl;
     Assoc e1 = e;
-    Value cl = rator->eval(e1);
+    Value cl = rator.get()->eval(e1);
     //std::cout << rator->e_type << std::endl;
     if (cl->v_type != V_PROC) {
         // std::cout << cl->v_type << std::endl;
@@ -56,7 +57,7 @@ Value Apply::eval(Assoc &e) {
         Assoc e2 = e;
         Value v = rand[i]->eval(e2);
         std::string target = clos->parameters[i];
-        local = extend(target, v, local, 1);
+        local = extend(target, v, local);
     }
 
     // std::cout << "after_edit_clos->env" << std::endl;
@@ -74,7 +75,7 @@ Value Letrec::eval(Assoc &env) {
     //std::cout << "letrec" << std::endl;
     Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
-       local = extend(bind[i].first, Value(nullptr), local, 0);
+       local = extend(bind[i].first, Value(nullptr), local);
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
     for (int i = 0; i < bind.size(); ++i) {
@@ -125,7 +126,8 @@ Value False::eval(Assoc &e) {
 
 Value Begin::eval(Assoc &e) {
     for (int i = 0; i < es.size() - 1; ++i) {
-        es[i]->eval(e);
+        Assoc e1 = e;
+        es[i]->eval(e1);
     }
     return es[es.size() - 1]->eval(e);
 } // begin expression

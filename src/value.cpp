@@ -2,8 +2,8 @@
 #include "Def.hpp"
 #include <iostream>
 
-AssocList::AssocList(const std::string &x, const Value &v, Assoc &next, bool a)
-  : x(x), v(v), next(next), def(a) {}
+AssocList::AssocList(const std::string &x, const Value &v, Assoc &next)
+  : x(x), v(v), next(next) {}
 
 Assoc::Assoc(AssocList *x) : ptr(x) {}
 AssocList* Assoc :: operator -> () const { return ptr.get(); }
@@ -14,16 +14,16 @@ Assoc empty() {
   return Assoc(nullptr);
 }
 
-Assoc extend(const std::string &x, const Value &v, Assoc &lst, bool def)
+Assoc extend(const std::string &x, const Value &v, Assoc &lst)
 {
-    return Assoc(new AssocList(x, v, lst, def));
+    return Assoc(new AssocList(x, v, lst));
 }
 
 Assoc merge(Assoc& target, Assoc& remain) {
   Assoc tmp = remain;
   for (auto i = target; i.get() != nullptr; i = i->next) {
     if ((find(i->x, tmp)).get() == nullptr) {
-      tmp = extend(i->x, i->v, tmp, i->def);
+      tmp = extend(i->x, i->v, tmp);
     }
   }
   return tmp;
@@ -35,7 +35,6 @@ void modify(const std::string &x, const Value &v, Assoc &lst)
         if (x == i -> x)
         {
             i -> v = v;
-            i->def = true;
             return;
         }
 }
@@ -44,7 +43,7 @@ Value find(const std::string &x, Assoc &l) {
   //std::cout << "start to find " << x << std::endl;
   for (auto i = l; i.get() != nullptr; i = i -> next) {
     //std::cout << "init" << std::endl;
-    if (x == i -> x && i->def == true) {
+    if (x == i -> x) {
       return i -> v;
     }
     // if (x == i->x && i->def == false) {
