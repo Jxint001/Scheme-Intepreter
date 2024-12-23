@@ -45,8 +45,8 @@ void initReservedWords()
 
 void initfunctions(Assoc& g) {
     //primitives as variebles
-    g = extend("#", NullV(), g);
-    g = extend("@", NullV(), g);
+    g = extend("#", Value(nullptr), g);
+    g = extend("@", Value(nullptr), g);
     std::vector<std::string> bi = {"#", "@"};
     std::vector<std::string> un = {"#"};
     for (const auto& i : primitives) {

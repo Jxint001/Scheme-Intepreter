@@ -30,7 +30,7 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-    env = extend(s, NullV(), env);
+    //env = extend(s, Value(nullptr), env);
 
     return Expr(new Var(s));
 }
@@ -193,7 +193,7 @@ Expr List :: parse(Assoc &env) {
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
             xs.push_back(id->s);
             //if ((find(id->s, env)).get() == nullptr)  
-            e = extend(id->s, NullV(), e);
+            e = extend(id->s, Value(nullptr), e);
         }
         return Expr(new Lambda(xs, stxs[2]->parse(e)));
     }
