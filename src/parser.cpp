@@ -20,8 +20,6 @@ using std :: pair;
 extern std :: map<std :: string, ExprType> primitives;
 extern std :: map<std :: string, ExprType> reserved_words;
 
-Value place = SymbolV("not_assigned");
-
 Expr Syntax :: parse(Assoc &env) {
     return (*this)->parse(env);
 }
@@ -32,7 +30,6 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-    //env = extend(s, Value(nullptr), env);
 
     return Expr(new Var(s));
 }
@@ -194,7 +191,7 @@ Expr List :: parse(Assoc &env) {
             Identifier* id = dynamic_cast<Identifier*>(paras->stxs[i].get());
             if (id == nullptr) { throw RuntimeError("invalid type 1"); }
             xs.push_back(id->s); 
-            e = extend(id->s, place, e);
+            e = extend(id->s, Value(nullptr), e);
         }
         return Expr(new Lambda(xs, stxs[2]->parse(e)));
     }
@@ -217,7 +214,7 @@ Expr List :: parse(Assoc &env) {
             Assoc env2 = env;
             Expr expr = var->stxs[1]->parse(env2);
             vec.push_back(mp(name->s, expr));
-            e = extend(name->s, place, e);
+            e = extend(name->s, Value(nullptr), e);
         }
         Expr body = stxs[2]->parse(e);
         return Expr(new Let(vec, body));
@@ -239,7 +236,7 @@ Expr List :: parse(Assoc &env) {
             Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
             if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
             throw RuntimeError("Not A Var"); }
-            e = extend(name->s, place, e);
+            e = extend(name->s, Value(nullptr), e);
         }
         for (int i = 0; i < paras->stxs.size(); ++i) {
             List* var = dynamic_cast<List*>(paras->stxs[i].get());

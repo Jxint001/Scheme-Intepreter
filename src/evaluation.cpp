@@ -49,7 +49,7 @@ Value Apply::eval(Assoc &e) {
     for (int i = 0; i < clos->parameters.size(); ++i) {
         local = extend(clos->parameters[i], v_to_bind[i], local);
     }
-       
+    //clos->env = local;
     return (clos->e)->eval(local);
 } // for function calling
 
@@ -58,6 +58,7 @@ Value Letrec::eval(Assoc &env) {
     Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
         //if ((find(bind[i].first, local)).get() == nullptr) {
+        //local = extend(bind[i].first, Value(nullptr), local);
         local = extend(bind[i].first, Value(nullptr), local);
         //} else {
             //modify(bind[i].first, NullV(), local);
