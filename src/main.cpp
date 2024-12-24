@@ -14,11 +14,11 @@ extern std :: map<std :: string, ExprType> reserved_words;
 void REPL()
 {
     // read - evaluation - print loop
-    
+    Assoc global_env = empty();
+    initfunctions(global_env);
     while (1)
     {
-        Assoc global_env = empty();
-        initfunctions(global_env);
+        
         #ifndef ONLINE_JUDGE
             std::cout << "scm> ";
         #endif

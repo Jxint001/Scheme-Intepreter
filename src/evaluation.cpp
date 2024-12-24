@@ -56,7 +56,7 @@ Value Apply::eval(Assoc &e) {
 Value Letrec::eval(Assoc &env) {
     Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
-        local = extend(bind[i].first, NullV(), local);
+        local = extend(bind[i].first, Value(nullptr), local);
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
     for (int i = 0; i < bind.size(); ++i) {
