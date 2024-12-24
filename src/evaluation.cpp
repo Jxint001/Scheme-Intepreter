@@ -361,7 +361,7 @@ Value IsEq::evalRator(const Value &rand1, const Value &rand2) {
         return BooleanV(false);
     }
     if (rand1->v_type == V_SYM) {
-        Symbol* a = dynamic_cast<Symbol*>(rand1.get()), *b = dynamic_cast<Symbol*>(rand1.get());
+        Symbol* a = dynamic_cast<Symbol*>(rand1.get()), *b = dynamic_cast<Symbol*>(rand2.get());
         if (a->s == b->s) { return BooleanV(true); }
         return BooleanV(false);
     }
