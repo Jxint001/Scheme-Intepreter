@@ -30,7 +30,10 @@ Expr Number :: parse(Assoc &env) {
 ExprType Number :: get_type() { return E_FIXNUM; }
 
 Expr Identifier :: parse(Assoc &env) {
-
+    if ((find(s, env)).get() != nullptr) {
+        return Expr(new Var(s));
+    }
+    env = extend(s, Value(nullptr), env);
     return Expr(new Var(s));
 }
 ExprType Identifier :: get_type() { 
@@ -52,23 +55,37 @@ ExprType FalseSyntax :: get_type() { return E_FALSE; }
 
 ExprType List :: get_type() { return E_LIST; }
 Expr List :: parse(Assoc &env) {
+    // std::cout << "list size: " << stxs.size() << std::endl;
+    // for (const auto& stx : stxs) {
+    //     stx->show(std::cout);
+    //     std::cout << " ";
+    // }
+    //std::cout << std::endl;
     if (stxs.empty()) {
-       throw RuntimeError("nothing here"); 
+        return Expr(new MakeVoid());
+       //throw RuntimeError("nothing here"); 
     }
     Identifier* id = dynamic_cast<Identifier*>(stxs[0].get());
     ExprType eptype = stxs[0]->get_type();
+    //Assoc env1 = env;
+    //Expr front = stxs[0]->parse(env1);
     string w_num = "incorrect number of parameterssss";
+
 
     if(id != nullptr){
         bool usedf=0;
         for(auto i = env; i.get() != nullptr; i = i->next)
             if(i->x == id->s) { usedf = 1;  break; }
         if(usedf){
-            //std::cout<<"used function "<< id->s << std::endl;
-            //std::cout << "syxs size" << stxs.size() << std::endl;
+            // std::cout<<"used function "<< id->s << std::endl;
+            // std::cout << "syxs size" << stxs.size() << std::endl;
             vector<Expr> expr;
-            for(int i = 1; i < stxs.size(); ++i)  expr.push_back(stxs[i]->parse(env));
-            return Expr(new Apply(stxs[0]->parse(env), expr));
+            for(int i = 1; i < stxs.size(); ++i) {
+                Assoc env1 = env;
+                expr.push_back(stxs[i]->parse(env1));
+            } 
+            Assoc env1 = env;
+            return Expr(new Apply(stxs[0]->parse(env1), expr));
         }
     }
     //std::cout << "wwwwwwwwwww   " << id->s << std::endl;
@@ -98,6 +115,7 @@ Expr List :: parse(Assoc &env) {
         return Expr(new MakeVoid());
     }
     if (eptype == E_CONS) {
+        //std::cout << "in cons" << std::endl;
         if (stxs.size() != 3) { throw RuntimeError(w_num); }
         return Expr(new Cons(stxs[1]->parse(env), stxs[2]->parse(env)));
     }// construct a pair
@@ -153,6 +171,7 @@ Expr List :: parse(Assoc &env) {
         return Expr(new IsNull(stxs[1]->parse(env)));
     }
     if (eptype == E_PAIRQ) {
+        //std::cout << "pair" << std::endl;
         if (stxs.size() != 2) { throw RuntimeError(w_num); }
         return Expr(new IsPair(stxs[1]->parse(env)));
     }
@@ -218,15 +237,16 @@ Expr List :: parse(Assoc &env) {
         }
         Expr body = stxs[2]->parse(e);
         return Expr(new Let(vec, body));
-        
     }
-    if (eptype == E_LETREC) {
-        if (stxs.size() != 3) { throw RuntimeError(w_num); }
 
+    if (eptype == E_LETREC) {
+        if (stxs.size() != 3) { 
+            return Expr(static_cast<ExprBase *>(new Quote(new List())));
+            //throw RuntimeError(w_num); 
+        }
         if (stxs[1]->get_type() != E_LIST) { throw RuntimeError("Not A List"); }
         List* paras = dynamic_cast<List*>(stxs[1].get());
         vector< pair<string, Expr>> vec;
-
         Assoc e = env;
         for (int i = 0; i < paras->stxs.size(); ++i) {
             if (paras->stxs[i]->get_type() != E_LIST) { throw RuntimeError("Not A List"); }
@@ -234,8 +254,7 @@ Expr List :: parse(Assoc &env) {
             if (var->stxs.size() != 2) { throw RuntimeError(w_num); }
             //a var
             Identifier* name = dynamic_cast<Identifier*>(var->stxs[0].get());
-            if (name == nullptr) { //std::cout << paras->stxs[0]->get_type() << std::endl; 
-            throw RuntimeError("Not A Var"); }
+            if (name == nullptr) { throw RuntimeError("Not A Var"); }
             e = extend(name->s, Value(nullptr), e);
         }
         for (int i = 0; i < paras->stxs.size(); ++i) {
@@ -244,10 +263,14 @@ Expr List :: parse(Assoc &env) {
             Assoc env2 = e;
             Expr expr = var->stxs[1]->parse(env2);
             vec.push_back(mp(name->s, expr));
+            //env = extend(name->s, expr->eval(e), env);
         }
+        //std::cout << stxs[2]->get_type() << std::endl;
         Expr body = stxs[2]->parse(e);
+        
         return Expr(new Letrec(vec, body));
     }
+
     vector<Expr> expr;
     for (int i = 1; i < stxs.size(); ++i) {
         expr.push_back(stxs[i]->parse(env));

@@ -39,7 +39,7 @@ Value Apply::eval(Assoc &e) {
         // std::cout << "clospara_size: " << clos->parameters.size();
         // std::cout << " rand_size: " << rand.size() << std::endl;
         throw RuntimeError("incorrect number of paras"); 
-        }
+    }
     Assoc local = clos->env;
     std::vector<Value> v_to_bind;
     for (int i = 0; i < rand.size(); ++i) {
@@ -54,15 +54,9 @@ Value Apply::eval(Assoc &e) {
 } // for function calling
 
 Value Letrec::eval(Assoc &env) {
-    //std::cout << "letrec" << std::endl;
     Assoc local = env;
     for (int i = 0; i < bind.size(); ++i) {
-        //if ((find(bind[i].first, local)).get() == nullptr) {
-        //local = extend(bind[i].first, Value(nullptr), local);
-        local = extend(bind[i].first, Value(nullptr), local);
-        //} else {
-            //modify(bind[i].first, NullV(), local);
-        //}
+        local = extend(bind[i].first, NullV(), local);
     }
     std::vector< std::pair<std::string, Value>> value_to_bind;
     for (int i = 0; i < bind.size(); ++i) {
@@ -71,7 +65,6 @@ Value Letrec::eval(Assoc &env) {
     }
     for (int i = 0; i < value_to_bind.size(); ++i) {
         modify(value_to_bind[i].first, value_to_bind[i].second, local);
-        //update(value_to_bind[i].second, local);
     }
     return body->eval(local);
 } // letrec expression
@@ -420,18 +413,22 @@ Value Not::evalRator(const Value &rand) {
 } // not
 
 Value Car::evalRator(const Value &rand) {
+    //std::cout << "Car called with type: " << rand->v_type << std::endl;
     if (rand->v_type != V_PAIR) { 
         // rand->show(std::cout);std::cout << std::endl;
         // std::cout << rand->v_type << std::endl;
         throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
+    //p->car->show(std::cout);std::cout << std::endl;
     return p->car;
 } // car
 
 Value Cdr::evalRator(const Value &rand) {
+    //std::cout << "Cdr called with type: " << rand->v_type << std::endl;
     if (rand->v_type != V_PAIR) { 
         
         throw RuntimeError("Not A Pair"); }
     Pair* p = dynamic_cast<Pair*>(rand.get());
+    //p->cdr->show(std::cout);std::cout << std::endl;
     return p->cdr;
 } // cdr
