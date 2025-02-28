@@ -31,7 +31,8 @@ Value Apply::eval(Assoc &e) {
     Assoc e1 = e;
     Value cl = rator->eval(e1);
     //std::cout << rator->e_type << std::endl;
-    if (cl->v_type != V_PROC) {
+    if (cl->v_type != V_PROC)
+    {
         throw RuntimeError("not a function");
     }
     Closure* clos = dynamic_cast<Closure*>(cl.get());
